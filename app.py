@@ -259,7 +259,7 @@ st.set_page_config(page_title="SafePaste", page_icon="🛡️", layout="wide")
 
 with st.sidebar:
     st.header("Settings")
-    mode = st.radio("Cloud mode", ["mock", "gemini"], help="mock never calls the network.")
+    mode = st.radio("Cloud AI", ["gemma-cloud", "mock"], help="gemma-cloud = Gemma 4 on the Gemini API (sees only placeholders). mock never calls the network.")
     st.subheader("Modules")
     for name, (_, is_stub) in MODULES.items():
         st.markdown(f"`{name}.py` · {'stub' if is_stub else 'live'}")

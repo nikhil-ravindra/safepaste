@@ -1,81 +1,70 @@
-# cloud.py — owner: Person 2
+"""The 'cloud AI' that answers — Gemma 4 on Google's Gemini API. Owner: Person 2.
+
+SafePaste uses Gemma on both sides:
+  - Small Gemma 4 (e4b) on the laptop GUARDS: finds secrets and swaps them (inspector.py).
+  - Big Gemma 4 (26B) in the cloud ANSWERS: it only ever sees placeholders like ⟦CLIENT_1⟧.
+
+Modes:
+  "gemma-cloud" → Gemma 4 via the Gemini API (needs GEMINI_API_KEY in .env)
+  "mock"        → canned answer, no network (backup for the demo)
+The cloud model ID comes from CLOUD_GEMMA_MODEL; default is a Gemma 4 ID from Google's docs.
+"""
 import os
 import re
-import sys
 import warnings
-from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+DEFAULT_CLOUD_MODEL = "gemma-4-26b-a4b-it"  # documented at ai.google.dev/gemma/docs/core/gemma_on_gemini_api
+KEEP_PLACEHOLDERS = ("Some words are replaced by tokens like ⟦CLIENT_1⟧ or ⟦AMOUNT_2⟧. "
+                     "Keep every such token exactly as written, unchanged, wherever you refer to it. "
+                     "Do not guess what the tokens stand for.")
 
 
 def _generate_mock_summary(prompt: str) -> str:
-    """Generates a realistic business summary reusing placeholders present in the prompt."""
-    placeholders = re.findall(r"⟦[^⟧]+⟧", prompt)
-    unique_placeholders = list(dict.fromkeys(placeholders))
-
-    if unique_placeholders:
-        extracted_str = ", ".join(unique_placeholders)
-        return (
-            f"Executive Summary: Reviewed operational dataset containing key markers: {extracted_str}. "
-            f"All associated financial metrics, Indian compliance mandates (GST/TDS), and API integrations "
-            f"were validated successfully with zero critical anomalies reported."
-        )
-    else:
-        return (
-            "Executive Summary: Operations and strategic alignment remain on track across key sectors. "
-            "Quarterly compliance, internal code auditing, and financial reconciliations completed without errors."
-        )
+    """Offline stand-in that reuses the placeholders, so restore still works with no internet."""
+    placeholders = list(dict.fromkeys(re.findall(r"⟦[^⟧]+⟧", prompt)))
+    if placeholders:
+        return ("Summary: the key items in this update are " + ", ".join(placeholders) +
+                ". Overall performance is on track; follow up on these items with the relevant owners.")
+    return "Summary: operations remain on track. No specific items needed follow-up."
 
 
-def ask(prompt: str, mode: str = "gemini") -> str:
-    """
-    Query the Gemini API or return a structured mock response.
-
-    Args:
-        prompt (str): The input prompt or request.
-        mode (str): 'gemini' to query live API, 'mock' for local fallback.
-
-    Returns:
-        str: The generated response or fallback mock summary.
-    """
-    if mode.lower() == "mock":
-        return _generate_mock_summary(prompt)
-
+def _ask_gemma_cloud(prompt: str) -> str:
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        warnings.warn("GEMINI_API_KEY not found in environment variables. Falling back to mock mode.")
+        warnings.warn("GEMINI_API_KEY not set. Falling back to mock mode.")
         return _generate_mock_summary(prompt)
-
     try:
         from google import genai
-        from google.genai import errors
+        from google.genai import types
 
-        # Initialize official GenAI client
         client = genai.Client(api_key=api_key)
-
-        # Call Gemini model with a 10-second timeout configuration if applicable
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents="Keep every token written like ⟦CLIENT_1⟧ exactly as it is, unchanged, in your answer.\n\n" + prompt,
+            model=os.getenv("CLOUD_GEMMA_MODEL", DEFAULT_CLOUD_MODEL),
+            contents=prompt,
+            config=types.GenerateContentConfig(system_instruction=KEEP_PLACEHOLDERS),
         )
-        
         if response.text:
             return response.text
-        else:
-            warnings.warn("Gemini API returned an empty response. Falling back to mock mode.")
-            return _generate_mock_summary(prompt)
+        warnings.warn("Cloud Gemma returned an empty answer. Falling back to mock mode.")
+    except Exception as e:  # no internet, bad key, timeout → demo keeps working
+        warnings.warn(f"Cloud Gemma call failed ({type(e).__name__}: {e}). Falling back to mock mode.")
+    return _generate_mock_summary(prompt)
 
-    except Exception as e:
-        warnings.warn(f"API call failed due to network error, timeout, or invalid response ({type(e).__name__}: {e}). Falling back to mock mode.")
+
+def ask(prompt: str, mode: str = "gemma-cloud") -> str:
+    """Send the MASKED prompt to the cloud model and return its answer."""
+    if mode.lower() == "mock":
         return _generate_mock_summary(prompt)
+    return _ask_gemma_cloud(prompt)
 
 
 if __name__ == "__main__":
-    # Quick standalone sanity check
-    sample_prompt = "Review transaction of ⟦AMOUNT_1⟧ for client ⟦CLIENT_1⟧ under project ⟦PROJECT_1⟧."
-    print("--- Testing Mock Mode ---")
-    print(ask(sample_prompt, mode="mock"))
-    
-    print("\n--- Testing Gemini Mode (with automatic fallback) ---")
-    print(ask(sample_prompt, mode="gemini"))
+    sample = "Summarize: ⟦CLIENT_1⟧ paid ⟦AMOUNT_1⟧ for ⟦CODENAME_1⟧."
+    print("mock:  ", ask(sample, mode="mock"))
+    print("cloud: ", ask(sample, mode="gemma-cloud"))
