@@ -8,6 +8,8 @@ from __future__ import annotations
 import html
 import importlib
 import re
+import threading
+import time
 from pathlib import Path
 
 import streamlit as st
@@ -62,6 +64,28 @@ def load_policy() -> str:
     return path.read_text(encoding="utf-8") if path.exists() else DEFAULT_POLICY
 
 
+@st.cache_resource
+def warm_up_gemma() -> None:
+    """Once per server start: load Gemma in the background so the first check isn't slow."""
+
+    def run():
+        try:
+            inspector.warm_up(load_policy())
+        except Exception:  # Ollama not up yet; the first real check will report it
+            pass
+
+    if hasattr(inspector, "warm_up"):
+        threading.Thread(target=run, daemon=True).start()
+
+
+def gemma_stats() -> dict:
+    """Ollama's timings for the latest local call, or {} when running on stubs."""
+    try:
+        return dict(importlib.import_module("ollama_client").LAST_STATS)
+    except (ImportError, AttributeError):
+        return {}
+
+
 def type_of(placeholder: str) -> str:
     return placeholder.strip("⟦⟧").rsplit("_", 1)[0]
 
@@ -104,17 +128,22 @@ def legend(kinds) -> str:
 def prepare(text: str, image):
     """Everything that happens before anything leaves the machine. None if there is no text at all."""
     parts = [text.strip()] if text.strip() else []
+    timings = {}
     if image is not None:
+        started = time.perf_counter()
         with st.spinner("Reading the screenshot on this machine…"):
             transcript = vision.transcribe(image.getvalue())
+        timings["screenshot"] = time.perf_counter() - started
         if transcript and transcript.strip():
             parts.append(transcript.strip())
     original = "\n\n".join(parts)
     if not original:
         return None
 
+    started = time.perf_counter()
     with st.spinner("Inspecting on this machine…"):
         findings = inspector.inspect(original, load_policy())
+    timings["inspect"] = time.perf_counter() - started
     level = str(risk.assess(findings, original)).strip().lower()
     if level not in RISK_STYLE:
         level = "high"  # an unexpected answer from the risk module fails closed
@@ -132,6 +161,8 @@ def prepare(text: str, image):
         # that mask() could not find, since that text may be going out unmasked.
         "needs_approval": level == "high" or bool(missed),
         "image": image.getvalue() if image is not None else None,
+        "timings": timings,
+        "gemma": gemma_stats(),
         "status": "pending",
     }
 
@@ -158,9 +189,11 @@ def log_event(run: dict, action: str, mode: str) -> None:
 
 
 def send(run: dict, mode: str, approved: bool) -> None:
+    started = time.perf_counter()
     try:
         with st.spinner("Asking the cloud with the masked text…"):
             answer = cloud.ask(run["masked"], mode=mode)
+        run.setdefault("timings", {})["cloud"] = time.perf_counter() - started
     except Exception as exc:  # report it; never fall back to sending anything else
         run.update(status="error", error=str(exc))
         log_event(run, "cloud_error", mode)
@@ -168,6 +201,21 @@ def send(run: dict, mode: str, approved: bool) -> None:
     restored, missing = mask.restore(answer, run["mapping"])
     run.update(status="sent", answer_masked=answer, answer=restored, missing=missing)
     log_event(run, "approved_and_sent" if approved else "sent", mode)
+
+
+def speed_line(run: dict) -> str:
+    t, g = run.get("timings", {}), run.get("gemma", {})
+    parts = []
+    if "screenshot" in t:
+        parts.append(f"screenshot read locally in {t['screenshot']:.1f} s")
+    line = f"checked locally in {t.get('inspect', 0):.1f} s"
+    if g.get("output_tokens"):
+        line += (f" (Gemma read {g['prompt_tokens']} tokens, wrote {g['output_tokens']}"
+                 f" at {g['tokens_per_s']:.0f} tok/s)")
+    parts.append(line)
+    if "cloud" in t:
+        parts.append(f"cloud answered in {t['cloud']:.1f} s")
+    return "⏱ " + " · ".join(parts)
 
 
 def render(run: dict, mode: str) -> None:
@@ -199,6 +247,8 @@ def render(run: dict, mode: str) -> None:
         else:
             st.subheader("What the cloud received")
             st.html(highlighted(run["masked"], placeholders))
+
+    st.caption(speed_line(run))
 
     if count:
         st.html(legend(set(placeholders.values())))
@@ -256,6 +306,7 @@ def render(run: dict, mode: str) -> None:
 
 
 st.set_page_config(page_title="SafePaste", page_icon="🛡️", layout="wide")
+warm_up_gemma()
 
 with st.sidebar:
     st.header("Settings")

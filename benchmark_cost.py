@@ -71,11 +71,10 @@ class Tokenizer:
         return math.ceil(len(text) / 3.5)
 
 
-def guard_output(expected: list[dict]) -> str:
-    """The findings JSON a perfect local guard would return for this prompt."""
-    return json.dumps({"findings": [
-        {"text": e["text"], "type": e["type"], "reason": f"Policy forbids sending {e['type'].lower()} items."}
-        for e in expected]}, ensure_ascii=False)
+def guard_output(expected: list[dict], premasked: str) -> str:
+    """The findings JSON a perfect local guard would return: items regex hasn't already masked."""
+    return json.dumps({"findings": [{"text": e["text"], "type": e["type"]}
+                                    for e in expected if e["text"] in premasked]}, ensure_ascii=False)
 
 
 def answer_tokens(task: str, masked_tokens: int) -> int:
@@ -89,9 +88,10 @@ def measure(case: dict, policy: str, tok: Tokenizer) -> dict:
     text, expected = case["prompt"], case.get("expected", [])
     masked, _ = mask.mask(text, expected)
 
-    guard_prompt = f"COMPANY POLICY:\n{policy}\n\nTEXT TO CHECK:\n<<<\n{text}\n>>>"  # as in inspector.py
+    premasked, _ = mask.mask(text, inspector._regex_findings(text))  # as in inspector.inspect
+    guard_prompt = f"COMPANY POLICY:\n{policy}\n\nTEXT TO CHECK:\n<<<\n{premasked}\n>>>"
     guard_in = tok.count(TEMPLATE.format(system=inspector.SYSTEM, prompt=guard_prompt))
-    guard_out = tok.count(guard_output(expected))
+    guard_out = tok.count(guard_output(expected, premasked))
 
     masked_tokens = tok.count(masked)
     cloud_in = tok.count(cloud.KEEP_PLACEHOLDERS) + masked_tokens  # system_instruction + contents
@@ -171,10 +171,10 @@ def report(rows: list[dict], tok: Tokenizer, overhead: int, users: int, per_day:
               "- Prices are USD per 1M tokens, checked 2026-10-09; edit `PRICES` in `benchmark_cost.py` when they change. "
               "On the Gemini API, Gemma 4 is free tier only (rate-limited, and free-tier prompts may be used to improve "
               "Google products); the paid route for the same model is Vertex AI.",
-              "- Guard input = Gemma chat template + `inspector.SYSTEM` + policy.md + the prompt, as `inspector.py` builds it. "
-              "The JSON schema is enforced by Ollama's constrained decoding and is not counted as prompt text. "
-              "A bad-JSON retry would double the guard's tokens.",
-              "- Guard output = the findings JSON for the expected items, with a one-line reason each.",
+              "- Guard input = Gemma chat template + `inspector.SYSTEM` + policy.md + the prompt with regex hits "
+              "already masked, as `inspector.py` builds it. "
+              "The JSON schema is enforced by Ollama's constrained decoding and is not counted as prompt text.",
+              "- Guard output = the findings JSON (text + type) for the expected items regex didn't already catch.",
               "- Cloud input = `cloud.KEEP_PLACEHOLDERS` system instruction + the masked prompt (mask.mask with the expected items).",
               "- Cloud output budgets per task: " + ", ".join(
                   f"{t} {b if isinstance(b, int) else b + ' prompt'}" for t, b in ANSWER_BUDGET.items()) + ". "

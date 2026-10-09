@@ -10,39 +10,39 @@ Cost is for the billed cloud call at Gemma 4 26B · Vertex AI prices ($0.15 in /
 
 | # | category | task | items | prompt tok | masked tok | guard in | guard out | cloud in | cloud out | cost / prompt | cost / 1k prompts |
 |--:|---|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|
-| 1 | control | qa | 0 | 19 | 19 | 406 | 5 | 65 | 150 | $0.000100 | $0.10 |
-| 2 | control | rewrite | 0 | 28 | 28 | 415 | 5 | 74 | 60 | $0.000047 | $0.05 |
-| 3 | control | code_review | 0 | 34 | 34 | 421 | 5 | 80 | 400 | $0.000252 | $0.25 |
-| 4 | short | rewrite | 2 | 30 | 29 | 417 | 60 | 75 | 60 | $0.000047 | $0.05 |
-| 5 | short | qa | 1 | 23 | 19 | 410 | 35 | 65 | 150 | $0.000100 | $0.10 |
-| 6 | short | email | 1 | 25 | 19 | 412 | 37 | 65 | 250 | $0.000160 | $0.16 |
-| 7 | short | summarize | 1 | 21 | 26 | 408 | 31 | 72 | 180 | $0.000119 | $0.12 |
-| 8 | short | code_review | 1 | 49 | 32 | 436 | 49 | 78 | 400 | $0.000252 | $0.25 |
-| 9 | medium | summarize | 6 | 77 | 83 | 464 | 165 | 129 | 180 | $0.000127 | $0.13 |
-| 10 | medium | email | 6 | 76 | 69 | 463 | 174 | 115 | 250 | $0.000167 | $0.17 |
-| 11 | medium | rewrite | 5 | 53 | 68 | 440 | 130 | 114 | 82 | $0.000066 | $0.07 |
-| 12 | medium | analysis | 6 | 62 | 79 | 449 | 152 | 125 | 350 | $0.000229 | $0.23 |
-| 13 | medium | translate | 3 | 35 | 46 | 422 | 79 | 92 | 74 | $0.000058 | $0.06 |
-| 14 | medium | qa | 3 | 56 | 54 | 443 | 88 | 100 | 150 | $0.000105 | $0.11 |
-| 15 | code | code_review | 3 | 100 | 95 | 486 | 92 | 141 | 400 | $0.000261 | $0.26 |
-| 16 | code | code_review | 2 | 97 | 66 | 484 | 90 | 112 | 400 | $0.000257 | $0.26 |
-| 17 | code | code_review | 2 | 90 | 91 | 476 | 55 | 137 | 400 | $0.000261 | $0.26 |
-| 18 | code | qa | 2 | 62 | 40 | 449 | 87 | 86 | 150 | $0.000103 | $0.10 |
-| 19 | table | analysis | 12 | 206 | 175 | 592 | 356 | 221 | 350 | $0.000243 | $0.24 |
-| 20 | table | summarize | 7 | 70 | 72 | 456 | 196 | 118 | 180 | $0.000126 | $0.13 |
-| 21 | long | summarize | 21 | 394 | 427 | 781 | 559 | 473 | 180 | $0.000179 | $0.18 |
-| 22 | long | rewrite | 9 | 242 | 259 | 629 | 252 | 305 | 311 | $0.000232 | $0.23 |
-| 23 | long | email | 9 | 179 | 189 | 566 | 243 | 235 | 250 | $0.000185 | $0.19 |
-| **all** | | | 102 | 2028 | 2019 | 10925 | 2945 | 3077 | 5357 | $0.003676 | |
+| 1 | control | qa | 0 | 19 | 19 | 414 | 5 | 65 | 150 | $0.000100 | $0.10 |
+| 2 | control | rewrite | 0 | 28 | 28 | 423 | 5 | 74 | 60 | $0.000047 | $0.05 |
+| 3 | control | code_review | 0 | 34 | 34 | 429 | 5 | 80 | 400 | $0.000252 | $0.25 |
+| 4 | short | rewrite | 2 | 30 | 29 | 425 | 40 | 75 | 60 | $0.000047 | $0.05 |
+| 5 | short | qa | 1 | 23 | 19 | 414 | 5 | 65 | 150 | $0.000100 | $0.10 |
+| 6 | short | email | 1 | 25 | 19 | 414 | 5 | 65 | 250 | $0.000160 | $0.16 |
+| 7 | short | summarize | 1 | 21 | 26 | 416 | 20 | 72 | 180 | $0.000119 | $0.12 |
+| 8 | short | code_review | 1 | 49 | 32 | 424 | 5 | 78 | 400 | $0.000252 | $0.25 |
+| 9 | medium | summarize | 6 | 77 | 83 | 474 | 72 | 129 | 180 | $0.000127 | $0.13 |
+| 10 | medium | email | 6 | 76 | 69 | 468 | 94 | 115 | 250 | $0.000167 | $0.17 |
+| 11 | medium | rewrite | 5 | 53 | 68 | 450 | 47 | 114 | 82 | $0.000066 | $0.07 |
+| 12 | medium | analysis | 6 | 62 | 79 | 459 | 60 | 125 | 350 | $0.000229 | $0.23 |
+| 13 | medium | translate | 3 | 35 | 46 | 432 | 33 | 92 | 74 | $0.000058 | $0.06 |
+| 14 | medium | qa | 3 | 56 | 54 | 450 | 40 | 100 | 150 | $0.000105 | $0.11 |
+| 15 | code | code_review | 3 | 100 | 95 | 486 | 21 | 141 | 400 | $0.000261 | $0.26 |
+| 16 | code | code_review | 2 | 97 | 66 | 460 | 19 | 112 | 400 | $0.000257 | $0.26 |
+| 17 | code | code_review | 2 | 90 | 91 | 484 | 35 | 137 | 400 | $0.000261 | $0.26 |
+| 18 | code | qa | 2 | 62 | 40 | 429 | 19 | 86 | 150 | $0.000103 | $0.10 |
+| 19 | table | analysis | 12 | 206 | 175 | 578 | 116 | 221 | 350 | $0.000243 | $0.24 |
+| 20 | table | summarize | 7 | 70 | 72 | 452 | 62 | 118 | 180 | $0.000126 | $0.13 |
+| 21 | long | summarize | 21 | 394 | 427 | 784 | 223 | 473 | 180 | $0.000179 | $0.18 |
+| 22 | long | rewrite | 9 | 242 | 259 | 628 | 103 | 305 | 311 | $0.000232 | $0.23 |
+| 23 | long | email | 9 | 179 | 189 | 576 | 86 | 235 | 250 | $0.000185 | $0.19 |
+| **all** | | | 102 | 2028 | 2019 | 10969 | 1120 | 3077 | 5357 | $0.003676 | |
 
 ## Average prompt
 
 | stage | where | input tokens | output tokens |
 |---|---|--:|--:|
-| guard (inspector.py) | local Ollama | 475 | 128 |
+| guard (inspector.py) | local Ollama | 477 | 49 |
 | answer (cloud.py) | cloud | 134 | 233 |
 
-386 of the guard's input tokens are fixed: the chat template, `inspector.SYSTEM` and policy.md go out with every prompt, so the local guard reads about 3.6x as many tokens as the cloud model does.
+394 of the guard's input tokens are fixed: the chat template, `inspector.SYSTEM` and policy.md go out with every prompt, so the local guard reads about 3.6x as many tokens as the cloud model does.
 
 Masking changes the prompt from 2028 to 2019 tokens across the benchmark (-0.4%). A placeholder such as ⟦CLIENT_1⟧ is 5 tokens: longer than a short name, much shorter than an API key, so masking is roughly token-neutral.
 
@@ -72,8 +72,8 @@ Monthly volume assumed: 50 users x 20 prompts/day x 22 days = 22,000 prompts, ea
 ## Assumptions
 
 - Prices are USD per 1M tokens, checked 2026-10-09; edit `PRICES` in `benchmark_cost.py` when they change. On the Gemini API, Gemma 4 is free tier only (rate-limited, and free-tier prompts may be used to improve Google products); the paid route for the same model is Vertex AI.
-- Guard input = Gemma chat template + `inspector.SYSTEM` + policy.md + the prompt, as `inspector.py` builds it. The JSON schema is enforced by Ollama's constrained decoding and is not counted as prompt text. A bad-JSON retry would double the guard's tokens.
-- Guard output = the findings JSON for the expected items, with a one-line reason each.
+- Guard input = Gemma chat template + `inspector.SYSTEM` + policy.md + the prompt with regex hits already masked, as `inspector.py` builds it. The JSON schema is enforced by Ollama's constrained decoding and is not counted as prompt text.
+- Guard output = the findings JSON (text + type) for the expected items regex didn't already catch.
 - Cloud input = `cloud.KEEP_PLACEHOLDERS` system instruction + the masked prompt (mask.mask with the expected items).
 - Cloud output budgets per task: qa 150, summarize 180, email 250, analysis 350, code_review 400, rewrite x1.2 prompt, translate x1.6 prompt. Output dominates cost on every paid model, so these budgets matter most.
 - Screenshots: `vision.py` transcribes locally (Gemma vision, roughly 256-1,100 image tokens per screenshot depending on resolution), then the transcript goes through the same two calls. No extra billed tokens.
