@@ -1,72 +1,79 @@
-# eval.py — owner: Person 2
+"""Measures how well SafePaste catches sensitive items. Owner: Person 2.
+
+For each synthetic prompt in tests/prompts.jsonl:
+  1. Gemma + regex inspect it against policy.md (inspector.inspect)
+  2. mask() replaces what was found
+  3. An expected item counts as CAUGHT if it no longer appears in the masked text
+  4. A finding that matches no expected item counts as a FALSE SWAP
+  5. The mock cloud answer is restored; we check every placeholder came back
+
+Line format: {"id": 1, "prompt": "...", "expected": [{"text": "Acme Corp", "type": "CLIENT"}]}
+Run:  python eval.py            (needs Ollama running and SAFEPASTE_MODEL set)
+All test data is synthetic.
+"""
 import json
-import os
 import sys
-from cloud import ask
+from collections import Counter
+from pathlib import Path
+
+import cloud
+import inspector
+import mask
+
+HERE = Path(__file__).parent
 
 
-def load_test_prompts(file_path: str = "tests/prompts.jsonl") -> list:
-    """Loads JSONL test dataset."""
-    if not os.path.exists(file_path):
-        print(f"Error: Dataset not found at {file_path}")
-        sys.exit(1)
-
-    prompts = []
-    with open(file_path, "r", encoding="utf-8") as f:
-        for line in f:
-            if line.strip():
-                prompts.append(json.loads(line.strip()))
-    return prompts
+def overlaps(a: str, b: str) -> bool:
+    a, b = a.lower(), b.lower()
+    return a in b or b in a
 
 
-def evaluate_dataset(mode: str = "mock", file_path: str = "tests/prompts.jsonl"):
-    """
-    Evaluates catch rate and placeholder preservation across the synthetic dataset.
-    """
-    prompts = load_test_prompts(file_path)
-    total_tests = len(prompts)
-    passed_tests = 0
+def main(path: str = "tests/prompts.jsonl") -> None:
+    policy = (HERE / "policy.md").read_text(encoding="utf-8")
+    lines = [l for l in (HERE / path).read_text(encoding="utf-8").splitlines() if l.strip()]
+    if not lines:
+        sys.exit(f"No test prompts in {path}")
 
-    print(f"\n==================================================")
-    print(f"   SafePaste Evaluation Suite - Mode: [{mode.upper()}]")
-    print(f"==================================================\n")
+    expected_total = caught_total = false_swaps = restore_ok = 0
+    missed_by_type, total_by_type = Counter(), Counter()
 
-    for test in prompts:
-        test_id = test.get("id")
-        prompt_text = test.get("prompt")
-        expected_items = test.get("expected", [])
+    for line in lines:
+        case = json.loads(line)
+        text, expected = case["prompt"], case.get("expected", [])
+        findings = inspector.inspect(text, policy)
+        masked, mapping = mask.mask(text, findings)
 
-        # Execute prompt through cloud wrapper
-        response = ask(prompt_text, mode=mode)
+        missed = []
+        for item in expected:
+            total_by_type[item.get("type", "OTHER")] += 1
+            if item["text"].lower() in masked.lower():
+                missed.append(item["text"])
+                missed_by_type[item.get("type", "OTHER")] += 1
+        caught = len(expected) - len(missed)
+        expected_total += len(expected)
+        caught_total += caught
 
-        # Verify that all expected placeholders appear in the mock response or original prompt structure
-        missing_placeholders = []
-        for item in expected_items:
-            expected_text = item.get("text")
-            if expected_text not in response and expected_text not in prompt_text:
-                missing_placeholders.append(expected_text)
+        extra = [f["text"] for f in findings if not any(overlaps(f["text"], e["text"]) for e in expected)]
+        false_swaps += len(extra)
 
-        if not missing_placeholders:
-            passed_tests += 1
-            status = "PASSED"
-        else:
-            status = "FAILED"
+        _, not_back = mask.restore(cloud.ask(masked, mode="mock"), mapping)
+        restore_ok += not not_back
 
-        print(f"Test #{test_id:02d}: [{status}] | Expected Placeholders: {len(expected_items)}")
-        if missing_placeholders:
-            print(f"         Missing: {missing_placeholders}")
+        status = "OK  " if not missed else "MISS"
+        print(f"[{status}] #{case.get('id')}: caught {caught}/{len(expected)}"
+              + (f" | missed {missed}" if missed else "")
+              + (f" | extra {extra}" if extra else "")
+              + (f" | Gemma error: {inspector.LAST_ERROR}" if inspector.LAST_ERROR else ""))
 
-    catch_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0.0
-
-    print("\n--------------------------------------------------")
-    print(f"Evaluation Summary:")
-    print(f"  Total Prompts Evaluated: {total_tests}")
-    print(f"  Successful Catch/Preservations: {passed_tests}")
-    print(f"  Overall Catch Rate: {catch_rate:.2f}%")
-    print("--------------------------------------------------\n")
+    print("\n================ SafePaste evaluation ================")
+    print(f"Prompts:            {len(lines)}")
+    print(f"Catch rate:         {caught_total}/{expected_total} = {100 * caught_total / max(expected_total, 1):.1f}%")
+    print(f"False swaps:        {false_swaps}  (safe text masked unnecessarily)")
+    print(f"Restore success:    {restore_ok}/{len(lines)} answers fully restored (mock cloud)")
+    print("Catch rate by type:")
+    for t, n in total_by_type.most_common():
+        print(f"  {t:<11} {n - missed_by_type[t]}/{n}")
 
 
 if __name__ == "__main__":
-    # Default to mock mode evaluation; pass 'gemini' as CLI arg for live cloud test
-    eval_mode = sys.argv[1] if len(sys.argv) > 1 else "mock"
-    evaluate_dataset(mode=eval_mode)
+    main(*sys.argv[1:])
