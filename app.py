@@ -315,4 +315,4 @@ with st.sidebar:
             st.json(entries)
     else:
         st.caption("No entries yet.")
-er: Person 3
+
