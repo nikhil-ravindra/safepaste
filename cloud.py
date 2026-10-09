@@ -57,7 +57,7 @@ def ask(prompt: str, mode: str = "gemini") -> str:
         # Call Gemini model with a 10-second timeout configuration if applicable
         response = client.models.generate_content(
             model="gemini-2.5-flash",
-            contents=prompt,
+            contents="Keep every token written like ⟦CLIENT_1⟧ exactly as it is, unchanged, in your answer.\n\n" + prompt,
         )
         
         if response.text:
