@@ -1,0 +1,25 @@
+{"id": 1, "prompt": "Summarize Q3 for my boss: Acme Corp renewed at ₹4.2 Cr and Zenith Retail churned.", "expected": [{"text": "Acme Corp", "type": "CLIENT"}, {"text": "₹4.2 Cr", "type": "AMOUNT"}, {"text": "Zenith Retail", "type": "CLIENT"}]}
+{"id": 2, "prompt": "Draft an email to ravi@acme.in saying the Project Falcon launch moves to December.", "expected": [{"text": "ravi@acme.in", "type": "PERSON"}, {"text": "Project Falcon", "type": "CODENAME"}]}
+{"id": 3, "prompt": "Why does this fail? API_KEY = \"sk-live9f8a7b6c5d4e3f2a1b0c\" requests.get(url)", "expected": [{"text": "sk-live9f8a7b6c5d4e3f2a1b0c", "type": "CREDENTIAL"}]}
+{"id": 4, "prompt": "Our AWS key AKIAABCDEFGHIJKLMNOP stopped working after the region change, what should I check?", "expected": [{"text": "AKIAABCDEFGHIJKLMNOP", "type": "CREDENTIAL"}]}
+{"id": 5, "prompt": "Rewrite for the board: Orbit Foods signed a ₹95,00,000 pilot in Pune.", "expected": [{"text": "Orbit Foods", "type": "CLIENT"}, {"text": "₹95,00,000", "type": "AMOUNT"}]}
+{"id": 6, "prompt": "Call Meera Iyer on 9876543210 about the Aarav Logistics Pvt Ltd invoice.", "expected": [{"text": "Meera Iyer", "type": "PERSON"}, {"text": "9876543210", "type": "PERSON"}, {"text": "Aarav Logistics Pvt Ltd", "type": "CLIENT"}]}
+{"id": 7, "prompt": "Project Trishul needs two more backend engineers before the January release.", "expected": [{"text": "Project Trishul", "type": "CODENAME"}]}
+{"id": 8, "prompt": "Make this polite: tell Kiran Shah the Nimbus Bank renewal of Rs 1.8 Cr is delayed.", "expected": [{"text": "Kiran Shah", "type": "PERSON"}, {"text": "Nimbus Bank", "type": "CLIENT"}, {"text": "Rs 1.8 Cr", "type": "AMOUNT"}]}
+{"id": 9, "prompt": "Explain the difference between a list and a tuple in Python.", "expected": []}
+{"id": 10, "prompt": "Write a short poem about the monsoon in Bengaluru.", "expected": []}
+{"id": 11, "prompt": "What is a good structure for a weekly team update email?", "expected": []}
+{"id": 12, "prompt": "Give me three tips for a better standup meeting.", "expected": []}
+{"id": 13, "prompt": "Translate to Hindi: the meeting is moved to Thursday at 4 pm.", "expected": []}
+{"id": 14, "prompt": "password: Winter@2026 is not working on the staging server, how do I reset it?", "expected": [{"text": "password: Winter@2026", "type": "CREDENTIAL"}]}
+{"id": 15, "prompt": "Compare the deals: Acme Corp at ₹4.2 Cr, Zenith Retail at ₹2.1 Cr, Orbit Foods at ₹95 lakh. What is the average?", "expected": [{"text": "Acme Corp", "type": "CLIENT"}, {"text": "₹4.2 Cr", "type": "AMOUNT"}, {"text": "Zenith Retail", "type": "CLIENT"}, {"text": "₹2.1 Cr", "type": "AMOUNT"}, {"text": "Orbit Foods", "type": "CLIENT"}, {"text": "₹95 lakh", "type": "AMOUNT"}]}
+{"id": 16, "prompt": "Summarize: Project Kaveri beta feedback from Sunrise Textiles was mostly positive.", "expected": [{"text": "Project Kaveri", "type": "CODENAME"}, {"text": "Sunrise Textiles", "type": "CLIENT"}]}
+{"id": 17, "prompt": "My GitHub token ghp_aB3dE5fG7hI9jK1lM3nO5pQ7rS9tU1vW3xY5 leaked in a commit, what do I do first?", "expected": [{"text": "ghp_aB3dE5fG7hI9jK1lM3nO5pQ7rS9tU1vW3xY5", "type": "CREDENTIAL"}]}
+{"id": 18, "prompt": "Send the Q4 forecast to priya.nair@zenithretail.com and copy finance.", "expected": [{"text": "priya.nair@zenithretail.com", "type": "PERSON"}]}
+{"id": 19, "prompt": "Fix the grammar: we has shipped the new login page last week.", "expected": []}
+{"id": 20, "prompt": "How do I center a div in CSS?", "expected": []}
+{"id": 21, "prompt": "Write a LinkedIn post about our team winning a hackathon.", "expected": []}
+{"id": 22, "prompt": "Help me prepare questions for a vendor demo of a CRM tool.", "expected": []}
+{"id": 23, "prompt": "Turn into bullets: Bluewave Telecom wants a 12% discount on the ₹3.4 Cr contract.", "expected": [{"text": "Bluewave Telecom", "type": "CLIENT"}, {"text": "₹3.4 Cr", "type": "AMOUNT"}]}
+{"id": 24, "prompt": "Rahul Verma from Project Phoenix asked for INR 25 lakh more budget.", "expected": [{"text": "Rahul Verma", "type": "PERSON"}, {"text": "Project Phoenix", "type": "CODENAME"}, {"text": "INR 25 lakh", "type": "AMOUNT"}]}
+{"id": 25, "prompt": "What does HTTP status 429 mean?", "expected": []}
