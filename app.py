@@ -1,4 +1,4 @@
-# app.py — own"""SafePaste: inspect and mask on this machine, send only the masked text, restore the answer locally.
+# """SafePaste: inspect and mask on this machine, send only the masked text, restore the answer locally.
 
 Run:  streamlit run app.py
 """
